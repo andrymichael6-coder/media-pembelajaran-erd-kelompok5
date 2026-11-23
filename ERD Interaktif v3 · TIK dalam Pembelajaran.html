@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ERD Interaktif · TIK dalam Pembelajaran</title>
+<style>
+:root{
+  --g:#006633;--g2:#004d26;--gl:#e8f5ee;
+  --y:#F2A900;--yl:#fff8e6;
+  --bg:#f2f6f3;--c:#ffffff;--t:#1c2b22;--m:#5b6b62;--b:#d6e0d9;
+  --ok:#1b8a4a;--no:#c0392b;--info:#0b6bcb;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px)
+}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1a14;--c:#18261e;--t:#e8f1ec;--m:#9bb0a4;--b:#2c4034;
+    --gl:#1d3327;--yl:#332810;color-scheme:dark
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1a14;--c:#18261e;--t:#e8f1ec;--m:#9bb0a4;--b:#2c4034;
+  --gl:#1d3327;--yl:#332810;color-scheme:dark
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--t);display:flex;flex-direction:column}
+
+/* HEADER & TRACKER */
+header{background:var(--g);color:#fff;padding:9px 14px;display:flex;align-items:center;gap:8px;border-bottom:3px solid var(--y)}
+header h1{font-size:14px;margin:0;flex:1;line-height:1.25}
+header small{display:block;font-weight:400;opacity:.9;font-size:11px}
+header button{background:rgba(255,255,255,.18);border:0;color:#fff;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:14px}
+#conn{font-size:11px;white-space:nowrap;background:rgba(0,0,0,.25);padding:3px 9px;border-radius:12px}
+#trk{display:flex;gap:10px;align-items:center;padding:6px 14px;background:var(--c);border-bottom:1px solid var(--b);font-size:12px}
+.live{color:var(--ok);font-weight:700;white-space:nowrap}
+.live:before{content:"● ";animation:bl 1.2s infinite}
+@keyframes bl{50%{opacity:.2}}
+.bar{height:8px;background:var(--b);border-radius:6px;overflow:hidden;flex:1;min-width:60px}
+.bar i{display:block;height:100%;background:var(--y);transition:width .3s}
+
+/* TOAST LOCK NOTICE */
+#toast{position:fixed;top:64px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;box-shadow:0 6px 20px rgba(0,0,0,.25);border-left:4px solid var(--y);max-width:92%;text-align:center;display:none}
+
+/* MAIN LAYOUT */
+main{flex:1;overflow:auto;padding:14px}
+section{max-width:840px;margin:0 auto;padding-bottom:12px}
+h2{color:var(--g);margin:.1em 0 .45em;font-size:20px;line-height:1.3}
+h3{margin:.2em 0 .4em;font-size:16px}
+h4{margin:1em 0 .35em;color:var(--g);font-size:14.5px}
+@media(prefers-color-scheme:dark){h2,h4{color:var(--y)}}
+p{margin:.4em 0 .7em}
+ul,ol{margin:.3em 0 .6em;padding-left:20px}
+li{margin-bottom:5px}
+
+/* CARDS & GRIDS */
+.card{background:var(--c);border:1px solid var(--b);border-radius:13px;padding:14px;margin:10px 0;box-shadow:0 2px 6px rgba(0,0,0,.03)}
+.card.accent{border-left:4px solid var(--g)}
+.card.gold{border-left:4px solid var(--y)}
+.card.tint{background:var(--gl);border-color:rgba(0,102,51,.25)}
+.c{text-align:center}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;text-align:center}
+.g3 small,.g2 small{display:block;color:var(--m);margin-top:3px;line-height:1.4}
+
+/* SVG DIAGRAMS */
+.sym{width:100%;max-width:125px;color:var(--g);display:block;margin:0 auto}
+.dg{width:100%;max-width:440px;display:block;margin:8px auto;color:var(--g)}
+@media(prefers-color-scheme:dark){.sym,.dg{color:var(--y)}}
+
+/* BUTTONS & INPUTS */
+.btn{background:var(--g);color:#fff;border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;font-size:14px;margin:4px 2px;transition:opacity .2s}
+.btn:hover{opacity:.92}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.gold{background:var(--y);color:#1a1a1a}
+.btn.ghost{background:transparent;color:var(--g);border:2px solid var(--g)}
+.btn.sm{padding:6px 11px;font-size:12.5px}
+@media(prefers-color-scheme:dark){.btn.ghost{color:var(--y);border-color:var(--y)}}
+input,select{width:100%;padding:10px 12px;margin:4px 0 10px;border:1.5px solid var(--b);border-radius:9px;background:var(--bg);color:var(--t);font-size:15px}
+label{font-size:12px;color:var(--m);font-weight:700;display:block;margin-top:4px}
+
+/* OPTIONS & FEEDBACK */
+.opt{border:2px solid var(--b);border-radius:10px;padding:10px 12px;margin:7px 0;cursor:pointer;background:var(--c);transition:all .15s}
+.opt:hover{border-color:var(--g)}
+.opt.ok{border-color:var(--ok);background:rgba(27,138,74,.16)}
+.opt.no{border-color:var(--no);background:rgba(192,57,43,.16)}
+.opt.sel{border-color:var(--y);background:var(--yl);font-weight:600}
+.opt.done{opacity:.72;cursor:default}
+.fb{margin-top:8px;font-size:13.5px;line-height:1.5}
+.tag{background:var(--y);color:#222;border-radius:8px;padding:2px 9px;font-size:11px;font-weight:700;display:inline-block}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700}
+.badge.ok{background:rgba(27,138,74,.18);color:var(--ok)}
+.badge.no{background:rgba(192,57,43,.18);color:var(--no)}
+.badge.warn{background:rgba(242,169,0,.25);color:#9a6700}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* LAB 1 & HOME ITEMS */
+.l1{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch}
+.sy{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;min-height:74px}
+.item{background:var(--c);border:1px solid var(--b);border-radius:11px;padding:11px 13px;margin:7px 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:border-color .2s}
+.item:hover{border-color:var(--g)}
+.item.locked{opacity:.62;background:var(--bg)}
+
+/* PERFORMANCE DASHBOARD */
+.perf-hero{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:linear-gradient(135deg,var(--g),var(--g2));color:#fff;border-radius:15px;padding:16px;margin:8px 0 12px}
+.gauge-wrap{position:relative;width:96px;height:96px;flex-shrink:0}
+.gauge-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.gauge-text b{font-size:24px;line-height:1;color:var(--y)}
+.gauge-text small{font-size:10px;opacity:.85}
+.perf-info{flex:1;min-width:200px}
+.perf-pill{display:inline-block;background:var(--y);color:#1a1a1a;font-weight:800;font-size:11.5px;padding:3px 10px;border-radius:20px;margin-bottom:6px}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:10px}
+.kpi .card{margin:0;text-align:center;border-bottom:3px solid var(--g)}
+.big{font-size:28px;font-weight:800;color:var(--g);line-height:1.15;margin:3px 0}
+@media(prefers-color-scheme:dark){.big{color:var(--y)}}
+.pr{margin:9px 0}
+.pr .bar{height:10px;margin-top:4px;flex:none}
+.review-item{border-left:4px solid var(--b);padding-left:10px;margin:10px 0}
+.review-item.ok{border-left-color:var(--ok)}
+.review-item.no{border-left-color:var(--no)}
+
+/* TABLES & VIDEO */
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+td,th{border-bottom:1px solid var(--b);padding:7px 6px;text-align:left;vertical-align:top}
+th{background:var(--gl);color:var(--g);font-weight:700}
+@media(prefers-color-scheme:dark){th{color:var(--y)}}
+.vid{aspect-ratio:16/9;width:100%;border:0;border-radius:12px;background:#000}
+
+/* LAB 3 LAYOUT */
+.l3{display:grid;grid-template-columns:1.1fr 1fr;gap:12px;align-items:start}
+.l3 .card{margin:6px 0}
+@media(max-width:640px){.l3{grid-template-columns:1fr}}
+
+/* BOTTOM NAVIGATION */
+nav{background:var(--c);border-top:1px solid var(--b);padding:6px 10px}
+.tabs,.acts{display:flex;gap:6px;max-width:840px;margin:0 auto}
+.tabs button{flex:1;background:none;border:0;color:var(--m);font-size:11.5px;cursor:pointer;padding:5px 4px;border-radius:8px}
+.tabs button.on{color:var(--g);font-weight:800;background:var(--gl);border-bottom:3px solid var(--y)}
+@media(prefers-color-scheme:dark){.tabs button.on{color:var(--y)}}
+.acts{margin-top:5px}
+.acts button{flex:1}
+body.login nav,body.login #trk,body.login .usr{display:none}
+</style>
+</head>
+<body class="login">
+
+<header>
+  <h1>ERD Interaktif · TIK dalam Pembelajaran<small class="usr" id="usr"></small></h1>
+  <span id="conn">Sheets: …</span>
+  <button onclick="tgl()" id="sb" aria-label="Suara">🔊</button>
+</header>
+
+<div id="trk">
+  <span class="live">Analytics Aktif</span>
+  <span>⏱ <b id="sw">00:00</b></span>
+  <div class="bar"><i id="pb"></i></div>
+  <b id="pc">0%</b>
+</div>
+
+<div id="toast"></div>
+<main id="main"></main>
+
+<nav>
+  <div class="tabs">
+    <button data-t="1" onclick="go(1)">🏠<br>Beranda</button>
+    <button data-t="2" onclick="go(2)">📖<br>Materi</button>
+    <button data-t="7" onclick="goActiveLab()">🧪<br>Latihan</button>
+    <button data-t="13" onclick="go(13)">📊<br>Analytics</button>
+  </div>
+  <div class="acts">
+    <button class="btn ghost" id="pv" onclick="go(S.cur-1)">‹ Kembali</button>
+    <button class="btn" id="nx" onclick="go(S.cur+1)">Lanjut ›</button>
+  </div>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.2/confetti.browser.min.js"></script>
+<script>
+const DEFAULT_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxkcZwWZadRkTJ4KNS5TwXBhossl8cwSwjuE0b60dsJLZyZqM1hDBWEigFs6W_hAoso/exec";
+const YT = "https://www.youtube.com/embed/LyfrTvsYTFE";
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const lsG = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) || d; } catch(e) { return d; } };
+const lsS = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} };
+
+const TOP = ["Komponen & Simbol", "Jenis Atribut & Entitas", "Kardinalitas", "Konsep Konseptual"];
+const NAMES = [
+  "Login Identitas",
+  "Beranda",
+  "Materi 1 · Pengantar & Komponen Dasar ERD",
+  "Materi 2 · Klasifikasi Atribut & Kunci",
+  "Materi 3 · Jenis Entitas, Partisipasi & Atribut Relasi",
+  "Materi 4 · Derajat Relasi, Kardinalitas & Notasi",
+  "Materi 5 · Metodologi Perancangan & Transformasi Tabel",
+  "Lab 1 · Pemantik Simbol ERD",
+  "Lab 2 · Studi Kasus Kardinalitas",
+  "Lab 3 · Mini ERD Builder",
+  "Lab 4 · ERD Debugging",
+  "Video Tutorial",
+  "Evaluasi Akhir (15 Soal)",
+  "Dashboard Performa & Learning Analytics"
+];
+
+const S = {
+  nama: "", nim: "",
+  sec: 0,
+  vis: new Set(),
+  err: [0, 0, 0, 0],
+  labDone: [false, false, false, false],
+  l1Log: [],
+  qi: 0,
+  qa: [],
+  qt: 0,
+  done: false,
+  sent: false,
+  sid: "",
+  cur: 0
+};
+
+/* ===== TOAST NOTIFICATION ===== */
+let toastTm = null;
+function toast(msg) {
+  const el = $("#toast");
+  el.textContent = msg;
+  el.style.display = "block";
+  clearTimeout(toastTm);
+  toastTm = setTimeout(() => { el.style.display = "none"; }, 3400);
+}
+
+/* ===== AUDIO & CONFETTI ===== */
+let AC, snd = true;
+function beep(t) {
+  if (!snd) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state === "suspended") AC.resume();
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.connect(g); g.connect(AC.destination);
+    const n = AC.currentTime;
+    if (t === "c") {
+      o.type = "sine";
+      o.frequency.setValueAtTime(523.25, n);
+      o.frequency.setValueAtTime(659.25, n + 0.1);
+      g.gain.setValueAtTime(0.4, n);
+    } else if (t === "w") {
+      o.type = "sawtooth";
+      o.frequency.setValueAtTime(290, n);
+      o.frequency.setValueAtTime(200, n + 0.1);
+      g.gain.setValueAtTime(0.25, n);
+    } else {
+      o.type = "sine";
+      o.frequency.setValueAtTime(780, n);
+      g.gain.setValueAtTime(0.08, n);
+    }
+    const d = t === "x" ? 0.08 : 0.28;
+    g.gain.exponentialRampToValueAtTime(0.01, n + d);
+    o.start(); o.stop(n + d);
+  } catch (e) {}
+}
+function tgl() { snd = !snd; $("#sb").textContent = snd ? "🔊" : "🔇"; }
+const conf = () => {
+  try {
+    window.confetti && confetti({ particleCount: 140, spread: 80, origin: { y: 0.6 }, colors: ["#006633", "#F2A900", "#ffffff"] });
+  } catch (e) {}
+};
+
+/* ===== TIMER (SINGLE INSTANCE, BERBASIS TIMESTAMP) ===== */
+let tm = null, tAcc = 0, tLast = 0;
+const fmt = s => String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+function tickT() {
+  const n = Date.now();
+  tAcc += n - tLast;
+  tLast = n;
+  S.sec = Math.floor(tAcc / 1000);
+  const e = $("#sw");
+  if (e) e.textContent = fmt(S.sec);
+}
+function startTimer() {
+  if (tm) return;
+  tLast = Date.now();
+  tm = setInterval(tickT, 1000);
+}
+function stopTimer() {
+  if (tm) { tickT(); clearInterval(tm); tm = null; }
+}
+function zeroTimer() { tAcc = 0; tLast = Date.now(); S.sec = 0; }
+
+/* ===== SVG SYMBOLS & DIAGRAMS ===== */
+function sym(k, l) {
+  const st = 'fill="none" stroke="currentColor" stroke-width="2"';
+  let s = "";
+  if (k === "ent") s = `<rect x="10" y="15" width="100" height="40" ${st}/>`;
+  if (k === "ent2") s = `<rect x="6" y="11" width="108" height="48" ${st}/><rect x="12" y="17" width="96" height="36" ${st}/>`;
+  if (k === "ov" || k === "key") s = `<ellipse cx="60" cy="35" rx="52" ry="22" ${st}/>`;
+  if (k === "mv") s = `<ellipse cx="60" cy="35" rx="55" ry="26" ${st}/><ellipse cx="60" cy="35" rx="47" ry="19" ${st}/>`;
+  if (k === "dr") s = `<ellipse cx="60" cy="35" rx="52" ry="22" ${st} stroke-dasharray="5 4"/>`;
+  if (k === "rel") s = `<polygon points="60,5 114,35 60,65 6,35" ${st}/>`;
+  return `<svg viewBox="0 0 120 70" class="sym" role="img">${s}${k === "key" && !l ? '<line x1="34" y1="43" x2="86" y2="43" stroke="currentColor" stroke-width="2"/>' : ""}${l ? `<text x="60" y="39" text-anchor="middle" font-size="11" fill="currentColor"${k === "key" ? ' style="text-decoration:underline;font-weight:700"' : ""}>${esc(l)}</text>` : ""}</svg>`;
+}
+
+function dgm(a, r, b, c1, c2, totLeft = false, totRight = false) {
+  const lnL = totLeft
+    ? `<line x1="80" y1="32" x2="108" y2="32"/><line x1="80" y1="38" x2="108" y2="38"/>`
+    : `<line x1="80" y1="35" x2="108" y2="35"/>`;
+  const lnR = totRight
+    ? `<line x1="192" y1="32" x2="220" y2="32"/><line x1="192" y1="38" x2="220" y2="38"/>`
+    : `<line x1="192" y1="35" x2="220" y2="35"/>`;
+  return `<svg viewBox="0 0 300 76" class="dg" fill="none" stroke="currentColor" stroke-width="2">
+    <rect x="4" y="15" width="76" height="40"/>
+    <rect x="220" y="15" width="76" height="40"/>
+    <polygon points="150,6 192,35 150,64 108,35"/>
+    ${lnL}${lnR}
+    <g stroke="none" fill="currentColor" font-size="10.5" text-anchor="middle">
+      <text x="42" y="39" font-weight="600">${esc(a)}</text>
+      <text x="258" y="39" font-weight="600">${esc(b)}</text>
+      <text x="150" y="38" font-size="9" font-weight="600">${esc(r)}</text>
+      <text x="94" y="25" font-weight="700">${c1}</text>
+      <text x="206" y="25" font-weight="700">${c2}</text>
+    </g>
+  </svg>`;
+}
+
+/* ===== 5 BAB MATERI LENGKAP & MENDALAM ===== */
+const MAT = [
+  /* BAB 1 */
+  `<div class="card accent">
+    <span class="tag">Bab 1 dari 5 · Konsep Dasar</span>
+    <p><b>Entity Relationship Diagram (ERD)</b> diperkenalkan oleh <b>Peter Chen (1976)</b> sebagai teknik pemodelan data tingkat <b>konseptual</b> (<i>Conceptual Data Model</i>). ERD memetakan struktur objek data dan hubungan logis antar objek tersebut secara visual sebelum diimplementasikan menjadi tabel fisik pada DBMS (seperti MySQL, PostgreSQL, atau SQL Server).</p>
+    <p style="margin-bottom:0"><b>Mengapa ERD penting?</b> ERD mencegah duplikasi data (<i>redundancy</i>), menjaga integritas referensi antar tabel, serta menjadi jembatan komunikasi antara analis sistem, programmer, dan pengguna bisnis.</p>
+  </div>
+
+  <h4>1. Tiga Komponen Utama + Garis Penghubung</h4>
+  <div class="g3 card">
+    <div>${sym("ent", "MAHASISWA")}<b>1. Entitas (Entity)</b><small><b>Simbol: Persegi Panjang.</b> Objek nyata atau abstrak yang dapat dibedakan dan datanya disimpan (contoh: Mahasiswa, Dosen, Buku, Transaksi).</small></div>
+    <div>${sym("ov", "Nama_Mhs")}<b>2. Atribut (Attribute)</b><small><b>Simbol: Oval / Lonjong.</b> Ciri, properti, atau karakteristik yang melekat pada sebuah entitas (contoh: NIM, Nama, Alamat).</small></div>
+    <div>${sym("rel", "Mengambil")}<b>3. Relasi (Relationship)</b><small><b>Simbol: Belah Ketupat.</b> Hubungan logis atau interaksi yang terjadi antar entitas (contoh: Mengambil, Membimbing, Meminjam).</small></div>
+  </div>
+  <div class="card">
+    <b>4. Garis Penghubung (Connecting Line):</b> Garis lurus yang menghubungkan <i>Atribut ke Entitas</i> serta <i>Entitas ke Relasi</i>. Atribut tidak boleh dihubungkan langsung ke atribut lain tanpa melalui entitas atau relasi.
+  </div>
+
+  <h4>2. Standar Aturan Penamaan (Naming Convention)</h4>
+  <div class="card">
+    <table>
+      <tr><th>Komponen</th><th>Jenis Kata</th><th>Format Penulisan</th><th>Contoh Benar vs Salah</th></tr>
+      <tr><td><b>Entitas</b></td><td>Kata Benda Tunggal</td><td>Huruf kapital / Title Case tanpa spasi</td><td>✅ <code>MAHASISWA</code>, <code>MATA_KULIAH</code><br>❌ <code>Data_Mahasiswa</code>, <code>Mengajar</code></td></tr>
+      <tr><td><b>Atribut</b></td><td>Kata Benda Spesifik</td><td>Title_Case dengan underscore</td><td>✅ <code>Tanggal_Lahir</code>, <code>Kode_Buku</code><br>❌ <code>Tgl</code> (singkatan tidak jelas)</td></tr>
+      <tr><td><b>Relasi</b></td><td>Kata Kerja Aktif</td><td>Kata kerja yang bermakna dua arah</td><td>✅ <code>MENGAMBIL</code>, <code>MEMBIMBING</code><br>❌ <code>Mahasiswa_Matkul</code> (kata benda)</td></tr>
+    </table>
+  </div>
+
+  <h4>3. Ilustrasi Studi Kasus Dasar</h4>
+  <div class="card tint">
+    ${dgm("MAHASISWA", "Mengambil", "MATA_KULIAH", "M", "N")}
+    <small><b>Cara membaca:</b> Banyak <code>MAHASISWA</code> dapat <i>Mengambil</i> banyak <code>MATA_KULIAH</code>, dan setiap <code>MATA_KULIAH</code> dapat diambil oleh banyak <code>MAHASISWA</code>.</small>
+  </div>`,
+
+  /* BAB 2 */
+  `<div class="card accent">
+    <span class="tag">Bab 2 dari 5 · Klasifikasi Atribut</span>
+    <p>Dalam perancangan basis data, tidak semua atribut memiliki perilaku penyimpanan yang sama. Mengenali jenis atribut menentukan bagaimana kolom dan tabel tambahan akan dibentuk saat implementasi database.</p>
+  </div>
+
+  <h4>1. Lima Jenis Atribut Berdasarkan Sifat Nilainya</h4>
+  <div class="g3 card">
+    <div>${sym("ov", "Jenis_Kelamin")}<b>Simple (Atomic)</b><small>Atribut bernilai tunggal yang tidak dapat dipecah menjadi bagian lebih kecil (contoh: <code>SKS</code>, <code>Jenis_Kelamin</code>).</small></div>
+    <div>${sym("ov", "Nama_Lengkap")}<b>Composite</b><small>Atribut yang dapat dipecah menjadi sub-atribut bermakna (contoh: <code>Nama_Lengkap</code> → <code>Nama_Depan</code> & <code>Nama_Belakang</code>).</small></div>
+    <div>${sym("key", "NIM")}<b>Key (Primary Key)</b><small><b>Teks bergaris bawah.</b> Pengenal unik setiap baris data, tidak boleh ganda & tidak boleh kosong (<code>NOT NULL</code>).</small></div>
+    <div>${sym("mv", "No_Telepon")}<b>Multivalue</b><small><b>Oval ganda.</b> Satu entitas dapat memiliki lebih dari satu nilai sekaligus (contoh: <code>No_Telepon</code>, <code>Email</code>, <code>Hobi</code>).</small></div>
+    <div>${sym("dr", "Umur")}<b>Derived (Turunan)</b><small><b>Oval garis putus-putus.</b> Nilainya dihitung dari atribut lain (contoh: <code>Umur</code> dihitung dari <code>Tanggal_Lahir</code>).</small></div>
+  </div>
+
+  <h4>2. Jenis-Jenis Kunci (Keys) dalam Basis Data</h4>
+  <div class="card">
+    <ul>
+      <li><b>Super Key:</b> Satu atau gabungan beberapa atribut yang dapat membedakan setiap baris data secara unik (contoh: <code>{NIM}</code> atau <code>{NIM, Nama}</code>).</li>
+      <li><b>Candidate Key:</b> Super key minimal yang tidak memiliki atribut berlebih dan berpotensi menjadi kunci utama (contoh: <code>NIM</code> dan <code>NIK</code> pada tabel Mahasiswa).</li>
+      <li><b>Primary Key (PK):</b> Candidate key yang dipilih sebagai pengenal utama entitas. Syarat mutlak: <b>Unik</b>, <b>Tidak NULL</b>, dan <b>Stabil</b> (jarang berubah).</li>
+      <li><b>Foreign Key (FK):</b> Atribut pada suatu tabel yang merujuk pada <i>Primary Key</i> di tabel lain untuk membentuk relasi antar tabel.</li>
+    </ul>
+  </div>
+
+  <div class="card gold">
+    <b>Catatan Praktis:</b> <i>Derived Attribute</i> (seperti <code>Umur</code> atau <code>Total_Bayar</code>) sebaiknya <b>tidak disimpan sebagai kolom fisik</b> di tabel agar tidak terjadi ketidakkonsistenan data saat waktu berjalan; nilainya cukup dihitung melalui query SQL saat ditampilkan.
+  </div>`,
+
+  /* BAB 3 */
+  `<div class="card accent">
+    <span class="tag">Bab 3 dari 5 · Entitas & Partisipasi</span>
+    <p>Selain entitas standar, ERD membedakan entitas berdasarkan kemandirian eksistensinya serta mengatur seberapa wajib sebuah entitas terlibat dalam suatu relasi.</p>
+  </div>
+
+  <h4>1. Strong Entity vs Weak Entity</h4>
+  <div class="g2 card">
+    <div>
+      ${sym("ent", "PEGAWAI")}
+      <b>Strong Entity (Entitas Kuat)</b>
+      <small>Memiliki <b>Primary Key sendiri</b> sehingga keberadaannya mandiri dan tidak bergantung pada entitas lain. Disimbolkan dengan <b>persegi panjang tunggal</b>.</small>
+    </div>
+    <div>
+      ${sym("ent2", "TANGGUNGAN")}
+      <b>Weak Entity (Entitas Lemah)</b>
+      <small><b>Tidak memiliki Primary Key sendiri</b> dan keberadaannya bergantung penuh pada entitas kuat induknya (<i>Identifying Owner</i>). Disimbolkan dengan <b>persegi panjang ganda</b>.</small>
+    </div>
+  </div>
+  <div class="card">
+    <b>Atribut Pembeda (Partial Key / Discriminator):</b> Pada Weak Entity (misalnya <code>TANGGUNGAN_KELUARGA</code> milik <code>PEGAWAI</code>), atribut seperti <code>Nama_Tanggungan</code> diberi <b>garis bawah putus-putus</b>. Identitas uniknya baru terbentuk jika digabung dengan PK entitas induk (<code>NIP + Nama_Tanggungan</code>).
+  </div>
+
+  <h4>2. Batasan Partisipasi (Participation Constraint)</h4>
+  <div class="card">
+    <p>Menentukan apakah keberadaan suatu entitas mengharuskannya berelasi dengan entitas lain:</p>
+    <b>A. Total Participation (Wajib / Mandatory) — Garis Ganda (<code>===</code>)</b>
+    ${dgm("KELAS", "Diajar_Oleh", "DOSEN", "N", "1", true, false)}
+    <small style="display:block;margin-bottom:10px">Setiap <code>KELAS</code> <b>wajib</b> memiliki <code>DOSEN</code> pengajar (tidak ada kelas tanpa dosen). Namun di sisi kanan garis tunggal artinya tidak semua dosen wajib mengajar kelas pada semester berjalan.</small>
+
+    <b>B. Partial Participation (Opsional) — Garis Tunggal (<code>---</code>)</b>
+    ${dgm("DOSEN", "Membimbing", "MAHASISWA", "1", "N", false, false)}
+    <small>Tidak semua dosen menjadi dosen wali, dan mahasiswa baru mungkin belum ditetapkan dosen walinya.</small>
+  </div>
+
+  <h4>3. Atribut pada Relasi (Relationship Attribute)</h4>
+  <div class="card tint">
+    <p style="margin-bottom:0">Sebuah relasi (terutama relasi <b>M:N</b>) dapat memiliki atribut sendiri yang tidak milik salah satu entitas saja. Contoh: pada relasi <code>MENGAMBIL</code> antara <code>MAHASISWA</code> dan <code>MATA_KULIAH</code>, atribut <b><code>Nilai_Akhir</code></b> dan <b><code>Semester</code></b> menempel pada belah ketupat relasi karena nilai hanya muncul ketika mahasiswa mengambil mata kuliah tersebut.</p>
+  </div>`,
+
+  /* BAB 4 */
+  `<div class="card accent">
+    <span class="tag">Bab 4 dari 5 · Derajat & Kardinalitas</span>
+    <p>Pemodelan hubungan antar data ditentukan oleh dua aspek utama: <b>Derajat Relasi</b> (berapa banyak entitas yang terlibat) dan <b>Kardinalitas</b> (berapa rasio maksimum pasangan datanya).</p>
+  </div>
+
+  <h4>1. Derajat Relasi (Degree of Relationship)</h4>
+  <div class="card">
+    <table>
+      <tr><th>Derajat</th><th>Jumlah Entitas</th><th>Contoh Kasus Nyata</th></tr>
+      <tr><td><b>Unary (Recursive)</b></td><td>1 Entitas (berelasi dengan dirinya sendiri)</td><td><code>PEGAWAI</code> mensupervisi <code>PEGAWAI</code> lain; <code>MATA_KULIAH</code> menjadi prasyarat <code>MATA_KULIAH</code> lain.</td></tr>
+      <tr><td><b>Binary</b></td><td>2 Entitas (paling sering digunakan)</td><td><code>ANGGOTA</code> meminjam <code>BUKU</code>; <code>DOSEN</code> membimbing <code>MAHASISWA</code>.</td></tr>
+      <tr><td><b>Ternary</b></td><td>3 Entitas sekaligus dalam satu kejadian</td><td><code>DOKTER</code> meresepkan <code>OBAT</code> untuk <code>PASIEN</code> dalam satu kunjungan.</td></tr>
+    </table>
+  </div>
+
+  <h4>2. Tiga Jenis Kardinalitas Utama (Binary)</h4>
+  <div class="card">
+    <b>1) One to One (1 : 1)</b>
+    <p style="font-size:13px;margin:2px 0">Satu record di entitas A berpasangan dengan maksimal satu record di entitas B, dan sebaliknya.</p>
+    ${dgm("DOSEN", "Menjabat_Kaprodi", "PRODI", "1", "1")}
+
+    <b>2) One to Many (1 : N)</b>
+    <p style="font-size:13px;margin:2px 0">Satu record di entitas A dapat terhubung ke banyak record di entitas B, tetapi satu record di B hanya terhubung ke satu record di A.</p>
+    ${dgm("FAKULTAS", "Membawahi", "PRODI", "1", "N")}
+
+    <b>3) Many to Many (M : N)</b>
+    <p style="font-size:13px;margin:2px 0">Banyak record di entitas A dapat terhubung ke banyak record di entitas B secara timbal balik.</p>
+    ${dgm("MAHASISWA", "Mengambil", "MATA_KULIAH", "M", "N")}
+  </div>
+
+  <h4>3. Perbandingan Notasi Chen vs Crow's Foot</h4>
+  <div class="card gold">
+    <table>
+      <tr><th>Konsep</th><th>Notasi Chen (Akademik)</th><th>Notasi Crow's Foot (Industri/Tools)</th></tr>
+      <tr><td><b>Entitas</b></td><td>Persegi Panjang</td><td>Kotak Tabel dengan daftar kolom di dalamnya</td></tr>
+      <tr><td><b>Atribut</b></td><td>Oval terhubung garis ke entitas</td><td>Ditulis sebagai baris di dalam kotak entitas</td></tr>
+      <tr><td><b>Relasi & Kardinalitas</b></td><td>Belah ketupat + label <code>1</code>, <code>N</code>, <code>M</code></td><td>Garis langsung dengan simbol kaki gagak (<code>|</code> = satu, <code>&lt;</code> = banyak, <code>O</code> = opsional)</td></tr>
+    </table>
+  </div>`,
+
+  /* BAB 5 */
+  `<div class="card accent">
+    <span class="tag">Bab 5 dari 5 · Metodologi & Implementasi</span>
+    <p>Tahap akhir pemodelan konseptual adalah menyusun ERD secara sistematis dari narasi kebutuhan sistem, lalu menerjemahkannya menjadi skema tabel relasional siap pakai.</p>
+  </div>
+
+  <h4>1. Enam Langkah Sistematis Merancang ERD</h4>
+  <div class="card">
+    <ol>
+      <li><b>Analisis Kebutuhan & Identifikasi Entitas:</b> Garis bawahi kata benda utama yang datanya perlu disimpan (contoh pada Klinik: <code>PASIEN</code>, <code>DOKTER</code>, <code>POLI</code>, <code>OBAT</code>).</li>
+      <li><b>Identifikasi Relasi Antar Entitas:</b> Temukan kata kerja yang menghubungkan antar entitas (contoh: <code>DOKTER</code> <i>memeriksa</i> <code>PASIEN</code>).</li>
+      <li><b>Tentukan Kardinalitas & Partisipasi:</b> Analisis aturan bisnis untuk menetapkan rasio <code>1:1</code>, <code>1:N</code>, atau <code>M:N</code>.</li>
+      <li><b>Tentukan Atribut & Primary Key:</b> Lengkapi setiap entitas dengan atribut relevan dan pilih satu <i>Primary Key</i> unik.</li>
+      <li><b>Identifikasi Weak Entity & Atribut Khusus:</b> Pisahkan atribut bernilai banyak (<i>Multivalue</i>) atau turunan (<i>Derived</i>).</li>
+      <li><b>Verifikasi & Normalisasi Awal:</b> Pastikan tidak ada atribut yang sebenarnya merupakan entitas mandiri.</li>
+    </ol>
+  </div>
+
+  <h4>2. Tujuh Aturan Transformasi ERD ke Tabel Relasional</h4>
+  <div class="card">
+    <table>
+      <tr><th>Komponen ERD</th><th>Aturan Transformasi ke Tabel Fisik</th></tr>
+      <tr><td><b>Strong Entity</b></td><td>Menjadi <b>1 tabel mandiri</b>; semua atribut simple menjadi kolom; PK menjadi Primary Key tabel.</td></tr>
+      <tr><td><b>Weak Entity</b></td><td>Menjadi <b>1 tabel</b> dengan kolom tambahan berupa <b>Foreign Key</b> dari entitas kuat induknya.</td></tr>
+      <tr><td><b>Relasi 1 : 1</b></td><td>PK dari entitas berpartisipasi <i>partial</i> disisipkan sebagai <b>Foreign Key</b> pada tabel entitas berpartisipasi <i>total</i>.</td></tr>
+      <tr><td><b>Relasi 1 : N</b></td><td>PK dari tabel sisi <b>1</b> disisipkan sebagai <b>Foreign Key</b> pada tabel sisi <b>N</b>.</td></tr>
+      <tr><td><b>Relasi M : N</b></td><td>Membentuk <b>tabel baru (tabel penghubung)</b> yang berisi PK dari kedua entitas sebagai Composite PK/FK + atribut relasi.</td></tr>
+      <tr><td><b>Multivalue Attribute</b></td><td>Membentuk <b>tabel baru terpisah</b> berisi PK entitas asal + nilai atribut multivalue tersebut.</td></tr>
+      <tr><td><b>Derived Attribute</b></td><td><b>Tidak dibuat kolom fisik</b> di tabel (dihitung otomatis saat query).</td></tr>
+    </table>
+  </div>
+
+  <h4>3. Kesalahan Umum (Common Pitfalls) yang Harus Dihindari</h4>
+  <div class="card gold">
+    <ul style="margin-bottom:0">
+      <li><b>Menjadikan atribut sebagai entitas:</b> Misalnya membuat entitas <code>ALAMAT</code> atau <code>NIM</code> terpisah padahal hanya ciri dari <code>MAHASISWA</code>.</li>
+      <li><b>Menghubungkan dua entitas tanpa relasi:</b> Setiap hubungan antar entitas wajib melewati simbol belah ketupat relasi.</li>
+      <li><b>Menyimpan atribut hasil perhitungan di tabel:</b> Misalnya menyimpan kolom <code>Umur</code> secara statis padahal setiap tahun berubah.</li>
+    </ul>
+  </div>`
+];
+
+/* ===== DATA LAB ===== */
+const L1 = [
+  { term: "Mahasiswa", key: "ent", label: "Persegi Panjang (Entitas)", reason: "Mahasiswa adalah objek nyata yang datanya disimpan dalam basis data, sehingga disimbolkan dengan Persegi Panjang." },
+  { term: "NIM", key: "key", label: "Oval Bergaris Bawah (Primary Key)", reason: "NIM bersifat unik untuk setiap mahasiswa dan menjadi pengenal utama, sehingga disimbolkan Oval dengan teks bergaris bawah." },
+  { term: "Alamat", key: "ov", label: "Oval Biasa (Atribut)", reason: "Alamat merupakan karakteristik deskriptif dari entitas, sehingga disimbolkan dengan Oval biasa." },
+  { term: "Mengambil", key: "rel", label: "Belah Ketupat (Relasi)", reason: "Mengambil adalah kata kerja yang menghubungkan dua entitas (Mahasiswa dan Mata Kuliah), sehingga disimbolkan Belah Ketupat." }
+];
+
+const LB = {
+  1: [
+    { q: "Satu Dosen Wali membimbing banyak Mahasiswa, dan setiap Mahasiswa hanya punya satu Dosen Wali. Kardinalitasnya?", o: ["1:1", "1:N", "M:N"], a: 1, e: "Satu sisi tunggal, sisi lain banyak, maka 1:N." },
+    { q: "Satu Mahasiswa mengambil banyak Mata Kuliah, dan satu Mata Kuliah diambil banyak Mahasiswa. Kardinalitasnya?", o: ["1:N", "M:N", "1:1"], a: 1, e: "Banyak ke banyak di kedua arah adalah M:N (menjadi tabel baru saat transformasi)." },
+    { q: "Satu Dosen menjabat Kaprodi pada satu Program Studi, dan satu Prodi hanya punya satu Kaprodi. Kardinalitasnya?", o: ["1:1", "1:N", "M:N"], a: 0, e: "Tiap sisi hanya satu pasangan, maka 1:1." },
+    { q: "Entitas Tanggungan_Keluarga tidak punya key sendiri dan selalu bergantung pada Pegawai. Jenis entitas dan partisipasinya?", o: ["Strong Entity, partisipasi partial", "Weak Entity, partisipasi total", "Strong Entity, partisipasi total"], a: 1, e: "Tanpa key sendiri berarti Weak Entity, dan keberadaannya wajib terkait Pegawai (total, garis ganda)." }
+  ],
+  3: [
+    { q: "Rancangan: entitas Mahasiswa digambar persegi panjang, dan Alamat juga digambar persegi panjang. Perbaikan yang benar?", o: ["Biarkan, keduanya sama-sama bagian data", "Ubah Alamat menjadi oval yang terhubung ke Mahasiswa", "Ubah Mahasiswa menjadi belah ketupat"], a: 1, e: "Alamat adalah atribut, jadi simbolnya oval yang digaris ke entitas Mahasiswa." },
+    { q: "Rancangan: relasi antara Dosen dan Kelas diberi nama Dosen_Kelas (kata benda). Perbaikan yang benar?", o: ["Ganti dengan kata kerja, misalnya Mengajar", "Ganti menjadi persegi panjang", "Hapus relasi dan hubungkan entitas langsung"], a: 0, e: "Relasi menggambarkan aktivitas, sehingga dinamai kata kerja seperti Mengajar." }
+  ]
+};
+
+/* ===== 15 SOAL EVALUASI AKHIR (UTUH DARI UTS) ===== */
+const Q = [
+  { q: "Simbol apakah yang digunakan untuk menggambarkan Atribut (seperti NIM atau Alamat) di dalam ERD?", o: ["Persegi Panjang", "Belah Ketupat", "Oval / Lonjong", "Garis Penghubung"], a: 2, e: "Di dalam pemodelan ERD, Atribut selalu disimbolkan dengan Oval / Lonjong.", tp: 0 },
+  { q: "Objek di dunia nyata yang keberadaannya dapat dibedakan dari objek lain (contoh: Mahasiswa, Dosen, Buku) disebut sebagai...", o: ["Atribut", "Entitas (Entity)", "Relasi", "Kardinalitas"], a: 1, e: "Objek utama yang informasinya direkam dalam basis data disebut Entitas.", tp: 0 },
+  { q: "Jika entitas 'Buku' ditulis oleh banyak 'Pengarang', dan satu 'Pengarang' dapat menulis banyak 'Buku', maka kardinalitasnya adalah...", o: ["1 : 1", "1 : N", "M : N", "M : 1"], a: 2, e: "Hubungan timbal balik banyak ke banyak disebut Many to Many (M:N).", tp: 2 },
+  { q: "Simbol 'Belah Ketupat' pada rancangan ERD berfungsi untuk menghubungkan antar entitas. Simbol ini disebut...", o: ["Hubungan / Relasi", "Entitas Lemah", "Atribut Turunan", "Flowchart"], a: 0, e: "Belah Ketupat adalah simbol resmi untuk Relasi.", tp: 0 },
+  { q: "Apa kardinalitas yang paling tepat jika 1 Fakultas memiliki banyak Program Studi di dalamnya?", o: ["One to One (1:1)", "One to Many (1:N)", "Many to Many (M:N)", "Primary Key"], a: 1, e: "1 Fakultas membawahi banyak Prodi, hubungannya One to Many (1:N).", tp: 2 },
+  { q: "Atribut yang berfungsi sebagai pengenal unik (identifier) untuk setiap baris data dalam tabel disebut...", o: ["Foreign Key", "Primary Key", "Composite Attribute", "Derived Attribute"], a: 1, e: "Primary Key adalah pengenal unik untuk tiap baris data.", tp: 1 },
+  { q: "Jenis atribut yang nilai datanya dapat dihitung dari atribut lain (contoh: Umur dihitung dari Tanggal Lahir) disebut...", o: ["Atribut Sederhana", "Atribut Multivalue", "Atribut Turunan (Derived)", "Atribut Gabungan"], a: 2, e: "Atribut Turunan (Derived Attribute) nilainya dihitung dari atribut lain.", tp: 1 },
+  { q: "Entitas yang keberadaannya bergantung sepenuhnya pada entitas lain karena tidak memiliki primary key sendiri disebut...", o: ["Entitas Kuat", "Entitas Lemah (Weak Entity)", "Entitas Asosiatif", "Entitas Induk"], a: 1, e: "Entitas Lemah bergantung pada entitas kuat pendukungnya.", tp: 1 },
+  { q: "Hubungan kardinalitas 1:1 (One to One) dapat ditemukan pada contoh kasus nyata berikut, yaitu...", o: ["Satu Mahasiswa mengambil banyak Mata Kuliah", "Satu Pegawai memimpin satu Departemen", "Satu Dosen mengajar banyak Kelas", "Satu Toko menjual banyak Barang"], a: 1, e: "Satu kepala memimpin satu departemen dimodelkan sebagai 1:1.", tp: 2 },
+  { q: "Garis penghubung (Line) di dalam ERD berfungsi untuk menghubungkan antara...", o: ["Entitas dengan atribut, atau entitas dengan relasi", "Tabel dengan database", "Server dengan client", "Query dengan form"], a: 0, e: "Garis menghubungkan entitas ke atribut atau relasi.", tp: 0 },
+  { q: "Manakah di bawah ini yang termasuk contoh dari sebuah Atribut Multivalue?", o: ["Nomor Induk Mahasiswa (NIM)", "Tanggal Lahir", "Nomor Telepon (bisa lebih dari satu)", "Jenis Kelamin"], a: 2, e: "Nomor Telepon dapat bernilai lebih dari satu untuk satu entitas.", tp: 1 },
+  { q: "Dalam perancangan sistem basis data, tahapan pembuatan ERD berada pada pemodelan tingkat...", o: ["Fisik (Physical Model)", "Konseptual (Conceptual Model)", "Implementasi Program", "Pengujian Jaringan"], a: 1, e: "ERD adalah model konseptual basis data.", tp: 3 },
+  { q: "Jika sebuah entitas 'Pelanggan' melakukan transaksi 'Pesanan', maka kata 'Melakukan' dalam konteks ERD bertindak sebagai...", o: ["Entitas", "Atribut", "Relasi", "Primary Key"], a: 2, e: "Kata kerja penghubung bertindak sebagai Relasi.", tp: 0 },
+  { q: "Notasi derajat minimum dan maksimum pada relasi ERD sering kali digambarkan menggunakan konsep...", o: ["Participation Constraint (Keterlibatan)", "Normalization Level", "Encryption Key", "Index Speed"], a: 0, e: "Participation constraint menentukan batasan keterlibatan partisipasi.", tp: 1 },
+  { q: "Apa keuntungan utama menggunakan pemodelan ERD sebelum membangun basis data relasional?", o: ["Mempercepat koneksi internet", "Memudahkan visualisasi struktur data dan relasi antar tabel", "Membuat desain grafis web lebih menarik", "Mengurangi ukuran file aplikasi"], a: 1, e: "ERD memudahkan visualisasi struktur data secara logis.", tp: 3 }
+];
+
+/* ===== KERANGKA HALAMAN ===== */
+const labHead = (n, t, p) => `<h2>${t}</h2><p>${p}</p><div id="lab${n}"></div>`;
+const PAGES = [
+  `<div class="card c" style="margin-top:20px"><div style="font-size:46px">🗂️</div><h2>Pengenalan Entity Relationship Diagram</h2><p>Sistem Basis Data · TIK dalam Pembelajaran</p><input id="nm" placeholder="Nama lengkap" autocomplete="name"><input id="ni" placeholder="NIM" inputmode="numeric"><div class="fb" id="lg" style="color:var(--no)"></div><button class="btn" onclick="login()">Mulai Belajar ›</button></div>`,
+  `<h2>Peta Belajar</h2><p>Pelajari materi, selesaikan seluruh latihan berurutan (Lab 1–4 & Evaluasi Akhir), lalu lihat Dashboard Performa.</p><div id="home"></div><button class="btn ghost sm" onclick="resetAll()">↺ Mulai ulang semua aktivitas</button>`,
+  ...MAT.map((h, i) => `<h2>${NAMES[i + 2]}</h2>${h}`),
+  labHead(0, NAMES[7], "Latihan pemantik wajib: pasangkan ke-4 istilah dengan simbolnya. Jika salah langsung lanjut saja—pembahasan muncul setelah semua terjawab."),
+  labHead(1, NAMES[8], "Selesaikan semua studi kasus kardinalitas di bawah ini sebelum melanjutkan ke tahap berikutnya."),
+  labHead(2, NAMES[9], "Susun rancangan ERD Sistem Perpustakaan hingga seluruh komponen tepat."),
+  labHead(3, NAMES[10], "Temukan kesalahan konseptual pada diagram, lalu pilih perbaikan yang tepat."),
+  `<h2>Video Tutorial</h2><iframe class="vid" id="yt" title="Video tutorial ERD" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe><p><small>Video berhenti otomatis saat Anda meninggalkan halaman ini.</small></p>`,
+  `<h2>Evaluasi Akhir</h2><div id="quiz"></div>`,
+  `<div id="dash"></div>`
+];
+
+const main = $("#main");
+PAGES.forEach((h, i) => {
+  const s = document.createElement("section");
+  s.id = "s" + i;
+  s.hidden = true;
+  s.innerHTML = h;
+  main.appendChild(s);
+});
+
+["nm", "ni"].forEach(id => {
+  const el = $("#" + id);
+  if (el) el.addEventListener("keydown", ev => { if (ev.key === "Enter") { ev.preventDefault(); login(); } });
+});
+
+/* ===== SISTEM KONTROL ANTI-SKIP LATIHAN & EVALUASI ===== */
+function firstBlockingPage() {
+  if (!S.labDone[0]) return 7;   // Wajib tuntaskan Lab 1 dulu sebelum > 7
+  if (!S.labDone[1]) return 8;   // Wajib tuntaskan Lab 2 dulu sebelum > 8
+  if (!S.labDone[2]) return 9;   // Wajib tuntaskan Lab 3 dulu sebelum > 9
+  if (!S.labDone[3]) return 10;  // Wajib tuntaskan Lab 4 dulu sebelum > 10
+  if (!S.done) return 12;        // Wajib tuntaskan Evaluasi Akhir (15 Soal) sebelum > 12 (Analytics)
+  return null;
+}
+
+function goActiveLab() {
+  const blk = firstBlockingPage();
+  go(blk || 7);
+}
+
+/* ===== NAVIGASI ===== */
+const R = {};
+const lab = n => { if (!R[n]) { R[n] = 1; [renderL1, renderL2, renderL3, renderL4][n](); } };
+const EN = {
+  1: () => renderHome(),
+  7: () => lab(0),
+  8: () => lab(1),
+  9: () => lab(2),
+  10: () => lab(3),
+  12: () => renderQ(),
+  13: () => renderDash()
+};
+
+function go(i) {
+  if (i < 1 && S.cur > 0) return;
+  if (i > 13) return;
+
+  // Cek apakah melewati latihan / evaluasi yang belum selesai
+  if (S.cur > 0 && i > 1) {
+    const blk = firstBlockingPage();
+    if (blk !== null && i > blk) {
+      beep("w");
+      toast(`🔒 Selesaikan "${NAMES[blk]}" terlebih dahulu sebelum melanjutkan!`);
+      if (S.cur !== blk) {
+        i = blk;
+      } else {
+        return;
+      }
+    }
+  }
+
+  if (S.cur === 11) $("#yt").src = "about:blank";
+  S.cur = i;
+  S.vis.add(i);
+  document.querySelectorAll("section").forEach((s, k) => s.hidden = k !== i);
+  if (i === 11) $("#yt").src = YT;
+  document.body.classList.toggle("login", i === 0);
+  if (EN[i]) EN[i]();
+  upd();
+  main.scrollTop = 0;
+}
+
+function upd() {
+  const p = Math.round((S.vis.size / 14) * 100);
+  $("#pb").style.width = p + "%";
+  $("#pc").textContent = p + "%";
+  $("#usr").textContent = S.nama ? S.nama + " · " + S.nim : "";
+
+  const c = S.cur;
+  const t = c === 1 ? 1 : (c >= 2 && c <= 6) ? 2 : (c >= 7 && c <= 12) ? 7 : c === 13 ? 13 : 0;
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", +b.dataset.t === t));
+
+  $("#pv").disabled = c <= 1;
+  $("#nx").hidden = c >= 13;
+
+  // Kunci tombol Lanjut jika sedang berada di halaman latihan/evaluasi yang belum selesai
+  const blk = firstBlockingPage();
+  if (blk !== null && c === blk) {
+    $("#nx").disabled = true;
+    $("#nx").textContent = "🔒 Selesaikan Dulu";
+  } else {
+    $("#nx").disabled = false;
+    $("#nx").textContent = "Lanjut ›";
+  }
+}
+
+function login() {
+  const n = $("#nm").value.trim(), m = $("#ni").value.trim();
+  if (n.length < 3 || m.length < 5) {
+    $("#lg").textContent = "Isi nama lengkap (min. 3 huruf) dan NIM (min. 5 karakter).";
+    beep("w");
+    return;
+  }
+  S.nama = n;
+  S.nim = m;
+  startTimer();
+  beep("c");
+  go(1);
+}
+
+function renderHome() {
+  const blk = firstBlockingPage();
+  $("#home").innerHTML = NAMES.slice(2).map((n, k) => {
+    const pageIdx = k + 2;
+    const isLocked = blk !== null && pageIdx > blk;
+    let statusTag = "";
+    if (pageIdx >= 7 && pageIdx <= 10) {
+      statusTag = S.labDone[pageIdx - 7] ? "✅ Selesai" : (isLocked ? "🔒 Terkunci" : "▶️ Wajib");
+    } else if (pageIdx === 12) {
+      statusTag = S.done ? "✅ Selesai" : (isLocked ? "🔒 Terkunci" : "▶️ Wajib");
+    } else if (pageIdx === 13) {
+      statusTag = isLocked ? "🔒 Selesaikan Latihan" : "📊 Terbuka";
+    } else {
+      statusTag = S.vis.has(pageIdx) ? "✅ Dibaca" : "📖 Materi";
+    }
+
+    return `
+      <div class="item ${isLocked ? "locked" : ""}" onclick="go(${pageIdx})">
+        <span>${n}</span>
+        <span style="color:var(--m);font-size:12px;font-weight:600">${statusTag}</span>
+      </div>
+    `;
+  }).join("");
+}
+
+function resetAll() {
+  S.err = [0, 0, 0, 0];
+  S.labDone = [false, false, false, false];
+  S.l1Log = [];
+  S.qi = 0;
+  S.qa = [];
+  S.done = false;
+  S.sent = false;
+  zeroTimer();
+  S.sid = "";
+  clearTimeout(advTm); advTm = null; advLock = false;
+  quizFilter = "all";
+  sel1 = null; mt1 = 0;
+  S.vis = new Set([0, 1]);
+  for (const k in R) delete R[k];
+  $("#sw").textContent = "00:00";
+  startTimer();
+  renderHome();
+  upd();
+}
+
+/* ===== LAB 1: PEMANTIK PENCOCOKAN SIMBOL (4 ITEM, SALAH LANJUT AJA + PEMBAHASAN) ===== */
+const shuf = a => {
+  a = a.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+
+let sel1 = null, mt1 = 0;
+function renderL1() {
+  sel1 = null;
+  mt1 = 0;
+  S.err[0] = 0;
+  S.labDone[0] = false;
+  S.l1Log = [];
+  const leftItems = shuf(L1);
+  const rightItems = shuf(L1);
+
+  $("#lab0").innerHTML = `
+    <div class="row">
+      <button class="btn sm ghost" onclick="resetLab(0)">↺ Ulangi Lab 1</button>
+      <span class="tag" id="mt">Terjawab: 0 / ${L1.length}</span>
+    </div>
+    <div class="l1 card">
+      <div>
+        <small style="display:block;text-align:center;color:var(--m);margin-bottom:6px"><b>1. Pilih Istilah</b></small>
+        ${leftItems.map(x => `<div class="opt" data-term="${esc(x.term)}" data-k="${x.key}" onclick="pickT(this)">${esc(x.term)}</div>`).join("")}
+      </div>
+      <div>
+        <small style="display:block;text-align:center;color:var(--m);margin-bottom:6px"><b>2. Pilih Simbol</b></small>
+        ${rightItems.map(x => `<div class="opt sy" data-k="${x.key}" data-lbl="${esc(x.label)}" onclick="pickS(this)">${sym(x.key, "")}</div>`).join("")}
+      </div>
+    </div>
+    <div id="l1-review"></div>
+  `;
+  upd();
+}
+
+function pickT(e) {
+  if (e.classList.contains("done")) return;
+  document.querySelectorAll("#lab0 .opt.sel").forEach(x => x.classList.remove("sel"));
+  e.classList.add("sel");
+  sel1 = e;
+  beep("x");
+}
+
+function pickS(e) {
+  if (e.classList.contains("done")) return;
+  if (!sel1) {
+    beep("w");
+    toast("👆 Pilih istilah di kolom kiri terlebih dahulu, baru pilih simbolnya.");
+    return;
+  }
+  const term = sel1.dataset.term;
+  const expectedKey = sel1.dataset.k;
+  const pickedKey = e.dataset.k;
+  const pickedLabel = e.dataset.lbl;
+  const isOk = expectedKey === pickedKey;
+
+  if (!isOk) S.err[0]++;
+
+  S.l1Log.push({ term, expectedKey, pickedKey, pickedLabel, isOk });
+
+  sel1.classList.remove("sel");
+  sel1.classList.add("done");
+  sel1.innerHTML = `${esc(term)} <small style="color:var(--m)">(${mt1 + 1})</small>`;
+
+  e.classList.add("done");
+  e.innerHTML += `<small style="color:var(--m);font-size:11px">Dipasangkan: ${esc(term)}</small>`;
+
+  sel1 = null;
+  mt1++;
+  beep("x");
+  $("#mt").textContent = `Terjawab: ${mt1} / ${L1.length}`;
+
+  if (mt1 === L1.length) {
+    S.labDone[0] = true;
+    upd();
+    showL1Review();
+  }
+}
+
+function showL1Review() {
+  const benarCount = S.l1Log.filter(x => x.isOk).length;
+  const salahList = S.l1Log.filter(x => !x.isOk);
+  if (benarCount === L1.length) {
+    beep("c");
+    conf();
+  }
+
+  let summaryHtml = "";
+  if (salahList.length === 0) {
+    summaryHtml = `<div class="card tint">
+      <b>🎉 Sempurna (${benarCount}/${L1.length} Benar)!</b> Semua simbol dasar ERD berhasil kamu pasangkan dengan tepat.
+      <div style="margin-top:8px"><button class="btn" onclick="go(8)">Lanjut ke Lab 2 ›</button></div>
+    </div>`;
+  } else {
+    summaryHtml = `<div class="card gold">
+      <b>Hasil Pemantik: ${benarCount}/${L1.length} Benar (${salahList.length} Kekeliruan)</b>
+      <p style="font-size:13px;margin:4px 0 8px">Berikut rincian letak kesalahan dan pembahasan singkatnya:</p>
+      ${S.l1Log.map(item => {
+        const master = L1.find(m => m.term === item.term);
+        if (item.isOk) {
+          return `<div class="review-item ok" style="font-size:13px">
+            ✅ <b>${esc(item.term)}</b> → <b>${esc(master.label)}</b> (Tepat)
+          </div>`;
+        } else {
+          return `<div class="review-item no" style="font-size:13px">
+            ❌ <b>${esc(item.term)}</b>: Kamu memilih <i>${esc(item.pickedLabel)}</i>.<br>
+            <span style="color:var(--ok)"><b>Seharusnya:</b> ${esc(master.label)}.</span> ${master.reason}
+          </div>`;
+        }
+      }).join("")}
+      <div style="margin-top:10px"><button class="btn" onclick="go(8)">Lanjut ke Lab 2 ›</button></div>
+    </div>`;
+  }
+
+  $("#l1-review").innerHTML = summaryHtml;
+}
+
+/* ===== LAB 2 & 4 (PILIHAN GANDA WAJIB TUNTAS) ===== */
+function mcq(n) {
+  S.labDone[n] = false;
+  $("#lab" + n).innerHTML = `
+    <div class="row">
+      <button class="btn sm ghost" onclick="resetLab(${n})">↺ Ulangi Lab ${n + 1}</button>
+      <span class="tag" id="cnt${n}">Terjawab: 0 / ${LB[n].length}</span>
+    </div>` +
+    LB[n].map((it, i) => `
+      <div class="card" id="q${n}_${i}">
+        <b>${i + 1}. ${it.q}</b>
+        ${it.o.map((o, j) => `<div class="opt" onclick="pickM(${n},${i},${j})">${o}</div>`).join("")}
+        <div class="fb"></div>
+      </div>
+    `).join("") +
+    `<div id="doneBox${n}"></div>`;
+  upd();
+}
+
+function pickM(n, i, j) {
+  const it = LB[n][i], c = $(`#q${n}_${i}`);
+  if (c.dataset.d) return;
+  c.dataset.d = 1;
+  const os = c.querySelectorAll(".opt"), ok = j === it.a;
+  os[it.a].classList.add("ok");
+  if (!ok) {
+    os[j].classList.add("no");
+    S.err[n]++;
+  }
+  beep(ok ? "c" : "w");
+  c.querySelector(".fb").innerHTML = (ok ? "✅ Benar. " : "❌ Kurang tepat. ") + it.e;
+
+  const answeredCount = document.querySelectorAll(`#lab${n} .card[data-d="1"]`).length;
+  const tagEl = $(`#cnt${n}`);
+  if (tagEl) tagEl.textContent = `Terjawab: ${answeredCount} / ${LB[n].length}`;
+
+  if (answeredCount === LB[n].length) {
+    S.labDone[n] = true;
+    upd();
+    const nextPg = n === 1 ? 9 : 11;
+    const nextLabel = n === 1 ? "Lanjut ke Lab 3 ›" : "Lanjut ke Video Tutorial ›";
+    $(`#doneBox${n}`).innerHTML = `
+      <div class="card tint row">
+        <b>✅ Lab ${n + 1} selesai dikerjakan!</b>
+        <button class="btn" onclick="go(${nextPg})">${nextLabel}</button>
+      </div>
+    `;
+  }
+}
+const renderL2 = () => { S.err[1] = 0; mcq(1); };
+const renderL4 = () => { S.err[3] = 0; mcq(3); };
+
+/* ===== LAB 3: MINI ERD BUILDER (WAJIB TEPAT) ===== */
+const opts = a => `<option value="">— pilih —</option>` + a.map(x => `<option>${x}</option>`).join("");
+function renderL3() {
+  S.err[2] = 0;
+  S.labDone[2] = false;
+  $("#lab2").innerHTML = `
+    <button class="btn sm ghost" onclick="resetLab(2)">↺ Ulangi Lab 3</button>
+    <div class="l3">
+      <div class="card">
+        <b style="font-size:13px">Pratinjau ERD (berubah langsung)</b>
+        <div id="pvw"></div>
+      </div>
+      <div class="card">
+        <label>Entitas 2</label>
+        <select id="e2" onchange="pvw()">${opts(["Buku", "Penerbit", "Petugas"])}</select>
+        <label>Primary Key Anggota</label>
+        <select id="pk" onchange="pvw()">${opts(["Nama_Anggota", "Alamat", "ID_Anggota"])}</select>
+        <label>Nama Relasi</label>
+        <select id="rl" onchange="pvw()">${opts(["Meminjam", "Buku_Pinjam", "Daftar"])}</select>
+        <label>Kardinalitas</label>
+        <select id="kd" onchange="pvw()">${opts(["1:1", "1:N", "M:N"])}</select>
+        <button class="btn" style="width:100%;margin:4px 0" onclick="chk3()">Periksa Rancangan</button>
+        <div class="fb" id="fb3"></div>
+      </div>
+    </div>
+  `;
+  pvw();
+  upd();
+}
+function pvw() {
+  const v = id => $("#" + id).value, k = v("kd").split(":");
+  const pk = v("pk") || "?", rl = v("rl") || "?", e2 = v("e2") || "?";
+  $("#pvw").innerHTML = `<svg viewBox="0 0 360 170" class="dg" fill="none" stroke="currentColor" stroke-width="2" role="img" aria-label="Pratinjau ERD Sistem Perpustakaan">
+    <ellipse cx="55" cy="36" rx="52" ry="22"/>
+    <line x1="55" y1="58" x2="55" y2="100"/>
+    <rect x="10" y="100" width="90" height="40"/>
+    <line x1="100" y1="120" x2="130" y2="120"/>
+    <polygon points="185,84 240,120 185,156 130,120"/>
+    <line x1="240" y1="120" x2="270" y2="120"/>
+    <rect x="270" y="100" width="80" height="40"/>
+    <g stroke="none" fill="currentColor" font-size="11" font-weight="600" text-anchor="middle">
+      <text x="55" y="40" style="text-decoration:underline">${esc(pk)}</text>
+      <text x="55" y="124">Anggota</text>
+      <text x="185" y="123" font-size="9">${esc(rl)}</text>
+      <text x="310" y="124">${esc(e2)}</text>
+      <text x="115" y="111" font-size="12" font-weight="700">${esc(k[0] || "?")}</text>
+      <text x="255" y="111" font-size="12" font-weight="700">${esc(k[1] || "?")}</text>
+    </g>
+  </svg>`;
+}
+function chk3() {
+  const v = id => $("#" + id).value;
+  const a = [
+    ["e2", "Buku", "Entitas 2"],
+    ["pk", "ID_Anggota", "Primary Key"],
+    ["rl", "Meminjam", "Relasi"],
+    ["kd", "M:N", "Kardinalitas"]
+  ];
+  if (a.some(x => !v(x[0]))) {
+    $("#fb3").textContent = "Lengkapi semua pilihan terlebih dahulu.";
+    beep("w");
+    return;
+  }
+  const w = a.filter(x => v(x[0]) !== x[1]);
+  S.err[2] += w.length;
+  beep(w.length ? "w" : "c");
+  if (w.length) {
+    $("#fb3").innerHTML = "❌ Masih perlu diperbaiki: <b>" + w.map(x => x[2]).join(", ") + "</b>. Ubah pilihan di atas lalu klik <i>Periksa Rancangan</i> lagi hingga tepat.";
+  } else {
+    S.labDone[2] = true;
+    upd();
+    $("#fb3").innerHTML = `✅ Tepat! Anggota (PK ID_Anggota) Meminjam Buku dengan kardinalitas M:N.<div style="margin-top:8px"><button class="btn" onclick="go(10)">Lanjut ke Lab 4 ›</button></div>`;
+    conf();
+  }
+}
+
+function resetLab(n) {
+  S.err[n] = 0;
+  S.labDone[n] = false;
+  [renderL1, renderL2, renderL3, renderL4][n]();
+  upd();
+}
+
+/* ===== EVALUASI AKHIR (15 SOAL — PEMBAHASAN MUNCUL SETELAH SELESAI) ===== */
+let quizFilter = "all";
+
+function renderQ() {
+  const el = $("#quiz");
+
+  if (S.done) {
+    const s = st();
+    const list = Q.map((q, idx) => ({ q, idx, ans: S.qa[idx] }))
+      .filter(item => {
+        if (quizFilter === "wrong") return item.ans && !item.ans.ok;
+        if (quizFilter === "right") return item.ans && item.ans.ok;
+        return true;
+      });
+
+    el.innerHTML = `
+      <div class="card c tint">
+        <span class="tag">Evaluasi Selesai</span>
+        <div class="big" style="font-size:42px;margin:6px 0">${s.score}</div>
+        <p style="margin:2px 0 10px">Benar <b>${s.ok}</b> dari <b>15</b> soal · Rata-rata waktu jawab <b>${s.avg} detik/soal</b></p>
+        <button class="btn gold" onclick="go(13)">📊 Buka Dashboard Performa ›</button>
+        <button class="btn ghost sm" onclick="resetQ()">↺ Ulangi Kuis</button>
+      </div>
+
+      <div class="row" style="margin:14px 0 6px">
+        <h3 style="margin:0">Pembahasan Lengkap 15 Soal</h3>
+        <div>
+          <button class="btn sm ${quizFilter === "all" ? "" : "ghost"}" onclick="setQFilter('all')">Semua (15)</button>
+          <button class="btn sm ${quizFilter === "wrong" ? "" : "ghost"}" onclick="setQFilter('wrong')">Salah (${15 - s.ok})</button>
+          <button class="btn sm ${quizFilter === "right" ? "" : "ghost"}" onclick="setQFilter('right')">Benar (${s.ok})</button>
+        </div>
+      </div>
+
+      ${list.length === 0 ? `<div class="card c">Tidak ada soal pada kategori filter ini.</div>` : list.map(({ q, idx, ans }) => {
+        const picked = ans ? ans.picked : -1;
+        const isOk = ans ? ans.ok : false;
+        const letters = ["A", "B", "C", "D"];
+        return `
+          <div class="card">
+            <div class="row" style="margin-bottom:6px">
+              <span class="badge ${isOk ? "ok" : "no"}">${isOk ? "✅ Benar" : "❌ Salah"} · Soal ${idx + 1}</span>
+              <span class="tag">${TOP[q.tp]}</span>
+            </div>
+            <p style="font-weight:600;margin-bottom:6px">${idx + 1}. ${q.q}</p>
+            <div style="font-size:13px;margin-bottom:4px">
+              Jawaban kamu: <b style="color:${isOk ? "var(--ok)" : "var(--no)"}">${picked >= 0 ? letters[picked] + ". " + q.o[picked] : "-"}</b>
+            </div>
+            ${!isOk ? `<div style="font-size:13px;margin-bottom:4px">Jawaban benar: <b style="color:var(--ok)">${letters[q.a]}. ${q.o[q.a]}</b></div>` : ""}
+            <div style="font-size:13px;color:var(--m);background:var(--bg);padding:8px 10px;border-radius:8px;margin-top:6px">
+              <b>Pembahasan:</b> ${q.e}
+            </div>
+          </div>
+        `;
+      }).join("")}
+    `;
+    return;
+  }
+
+  const q = Q[S.qi];
+  const prevPicked = S.qa[S.qi] ? S.qa[S.qi].picked : -1;
+  S.qt = Date.now();
+
+  el.innerHTML = `
+    <div class="card">
+      <div class="row">
+        <b>Soal ${S.qi + 1} dari 15</b>
+        <span class="tag">${TOP[q.tp]}</span>
+      </div>
+      <div class="bar" style="margin:8px 0"><i style="width:${((S.qi + 1) / 15) * 100}%"></i></div>
+      <p style="font-size:15.5px;font-weight:600;margin:10px 0">${S.qi + 1}. ${q.q}</p>
+      ${q.o.map((o, j) => `
+        <div class="opt ${prevPicked === j ? "sel" : ""}" onclick="ans(${j})">
+          <b>${"ABCD"[j]}.</b> ${o}
+        </div>
+      `).join("")}
+      <div class="row" style="margin-top:12px">
+        <button class="btn ghost sm" ${S.qi === 0 ? "disabled" : ""} onclick="prevQ()">‹ Soal Sebelumnya</button>
+        <small style="color:var(--m)">Wajib menjawab seluruh 15 soal untuk melihat pembahasan & Analytics</small>
+      </div>
+    </div>
+  `;
+}
+
+function setQFilter(f) {
+  quizFilter = f;
+  renderQ();
+}
+
+function prevQ() {
+  if (advLock || S.done) return;
+  if (S.qi > 0) {
+    S.qi--;
+    renderQ();
+  }
+}
+
+let advLock = false, advTm = null;
+function ans(j) {
+  if (advLock || S.done) return;
+  advLock = true;
+  const pb = document.querySelector("#quiz button[onclick='prevQ()']");
+  if (pb) pb.disabled = true;
+
+  const idx = S.qi, q = Q[idx];
+  const ok = j === q.a;
+  const elapsed = Math.max(0.5, +((Date.now() - S.qt) / 1000).toFixed(1));
+  const prevT = S.qa[idx] ? S.qa[idx].t : 0;
+
+  S.qa[idx] = { tp: q.tp, picked: j, ok, t: +(prevT + elapsed).toFixed(1) };
+
+  const os = document.querySelectorAll("#quiz .opt");
+  os.forEach(x => x.classList.remove("sel"));
+  if (os[j]) os[j].classList.add("sel");
+  beep("x");
+
+  advTm = setTimeout(() => {
+    advTm = null;
+    advLock = false;
+    if (S.done) return;
+    if (S.qi < 14) {
+      S.qi++;
+      renderQ();
+      return;
+    }
+    const miss = Q.findIndex((_, i) => !S.qa[i]);
+    if (miss >= 0) {
+      S.qi = miss;
+      renderQ();
+      toast("Masih ada soal yang belum dijawab.");
+    } else {
+      finish();
+    }
+  }, 240);
+}
+
+function finish() {
+  S.done = true;
+  S.sid = newSid();
+  stopTimer();
+  const s = st();
+  if (s.score >= 70) conf();
+  upd();
+  pushData();
+  renderQ();
+  main.scrollTop = 0;
+}
+
+function resetQ() {
+  clearTimeout(advTm);
+  advTm = null;
+  advLock = false;
+  S.qi = 0;
+  S.qa = [];
+  S.done = false;
+  S.sent = false;
+  S.sid = "";
+  quizFilter = "all";
+  startTimer();
+  renderQ();
+  upd();
+}
+
+/* ===== ANALYTICS ENGINE & PERFORMANCE DASHBOARD ===== */
+function st() {
+  const t = TOP.map(() => [0, 0]);
+  S.qa.forEach(a => {
+    if (!a) return;
+    t[a.tp][1]++;
+    if (a.ok) t[a.tp][0]++;
+  });
+  const validAns = S.qa.filter(Boolean);
+  const n = validAns.length;
+  const ok = validAns.filter(a => a.ok).length;
+  return {
+    t,
+    acc: t.map(x => (x[1] ? Math.round((x[0] / x[1]) * 100) : 0)),
+    n,
+    ok,
+    score: Math.round((ok / 15) * 100),
+    avg: n ? +(validAns.reduce((sum, a) => sum + a.t, 0) / n).toFixed(1) : 0,
+    errT: S.err.reduce((a, b) => a + b, 0),
+    pct: Math.round((S.vis.size / 14) * 100)
+  };
+}
+
+function getPerformanceTier(s) {
+  if (!S.done && s.n === 0) {
+    return { label: "⏳ Evaluasi Belum Dikerjakan", desc: "Selesaikan Evaluasi Akhir (15 Soal) untuk mengukur skor kompetensi penuh." };
+  }
+  if (s.score >= 85) {
+    return { label: "🏆 Sangat Kompeten (Predikat A)", desc: "Penguasaan konsep pemodelan ERD, atribut, dan kardinalitas sangat matang." };
+  }
+  if (s.score >= 70) {
+    return { label: "🌟 Kompeten (Predikat B)", desc: "Pemahaman dasar ERD sudah baik, tinggal memperkuat beberapa detail konseptual." };
+  }
+  if (s.score >= 50) {
+    return { label: "📘 Cukup · Perlu Penguatan (Predikat C)", desc: "Beberapa konsep ERD masih tertukar. Disarankan meninjau materi rekomendasi." };
+  }
+  return { label: "🧭 Tahap Awal · Remedial (Predikat D)", desc: "Perlu mempelajari ulang dasar simbol, jenis atribut, dan studi kasus kardinalitas." };
+}
+
+function analyse(s) {
+  let w = -1;
+  if (s.n) {
+    s.acc.forEach((a, i) => {
+      if (s.t[i][1] && (w < 0 || a < s.acc[w])) w = i;
+    });
+  }
+  const mx = Math.max(...S.err), ml = S.err.indexOf(mx), p = [], r = [];
+
+  if (w >= 0) {
+    p.push(`Kompetensi dengan akurasi terendah: <b>${TOP[w]}</b> (${s.acc[w]}%).`);
+    if (s.acc[w] < 100) {
+      r.push([`Pelajari Ulang ${["Materi 1 (Simbol)", "Materi 2 (Atribut)", "Materi 4 (Kardinalitas)", "Materi 5 (Konsep)"][w]}`, [2, 3, 5, 6][w]]);
+    }
+  } else {
+    p.push("Belum ada data evaluasi akhir yang terekam.");
+    r.push(["Kerjakan Evaluasi Akhir (15 Soal)", 12]);
+  }
+
+  if (mx > 0) {
+    p.push(`Tercatat <b>${s.errT} kekeliruan</b> pada sesi latihan, terbanyak di <b>Lab ${ml + 1}</b> (${mx}x).`);
+    r.push([`Latih Ulang Lab ${ml + 1}`, 7 + ml]);
+  } else {
+    p.push("Seluruh latihan praktikum Lab 1–4 diselesaikan tanpa kesalahan.");
+  }
+
+  if (s.n) {
+    if (s.avg > 20) {
+      p.push(`Kecepatan jawab rata-rata <b>${s.avg} detik/soal</b>: cenderung ragu atau membutuhkan waktu lama menganalisis studi kasus.`);
+    } else if (s.avg < 4.5 && s.score < 70) {
+      p.push(`Kecepatan jawab sangat singkat (<b>${s.avg} detik/soal</b>) disertai skor rendah: indikasi menjawab terburu-buru.`);
+    } else {
+      p.push(`Tempo analisis soal <b>${s.avg} detik/soal</b> tergolong stabil dan proporsional.`);
+    }
+  }
+
+  if (S.done) {
+    r.push(["Lihat Pembahasan 15 Soal Kuis", 12]);
+  }
+  return { p, r };
+}
+
+let ch = null;
+function renderDash() {
+  if (ch) { ch.destroy(); ch = null; }
+  const s = st();
+  const a = analyse(s);
+  const tier = getPerformanceTier(s);
+
+  const circ = 238.76;
+  const offset = circ - (s.score / 100) * circ;
+
+  $("#dash").innerHTML = `
+    <div class="row">
+      <h2>Dashboard Performa & Analytics</h2>
+      <span class="tag">${S.nama ? esc(S.nama) + " (" + esc(S.nim) + ")" : "Peserta"}</span>
+    </div>
+
+    <div class="perf-hero">
+      <div class="gauge-wrap">
+        <svg width="96" height="96" viewBox="0 0 96 96">
+          <circle cx="48" cy="48" r="38" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="9"/>
+          <circle cx="48" cy="48" r="38" fill="none" stroke="#F2A900" stroke-width="9"
+            stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
+            stroke-linecap="round" transform="rotate(-90 48 48)"/>
+        </svg>
+        <div class="gauge-text">
+          <b>${s.score}</b>
+          <small>SKOR AKHIR</small>
+        </div>
+      </div>
+      <div class="perf-info">
+        <div class="perf-pill">${tier.label}</div>
+        <div style="font-size:13px;line-height:1.45;opacity:.95">${tier.desc}</div>
+        <div style="font-size:11.5px;margin-top:6px;opacity:.85">Ketuntasan Modul: <b>${s.pct}%</b> (${S.vis.size}/14 halaman)</div>
+      </div>
+    </div>
+
+    <div class="kpi">
+      <div class="card">
+        <small>Perbandingan Kelas</small>
+        <div class="big" id="avg">…</div>
+        <small>Rata-rata Skor Sheets</small>
+      </div>
+      <div class="card">
+        <small>Total Durasi Belajar</small>
+        <div class="big">${fmt(S.sec)}</div>
+        <small>Time-on-Task Aktif</small>
+      </div>
+      <div class="card">
+        <small>Kekeliruan Latihan</small>
+        <div class="big">${s.errT}</div>
+        <small>${S.err.map((e, i) => "L" + (i + 1) + ":" + e).join(" · ")}</small>
+      </div>
+      <div class="card">
+        <small>Kecepatan Respon</small>
+        <div class="big">${s.avg}s</div>
+        <small>Rata-rata per Soal</small>
+      </div>
+    </div>
+
+    <h4>Descriptive Analytics · Profil Penguasaan Kompetensi</h4>
+    <div class="card">
+      ${TOP.map((n, i) => {
+        const val = s.acc[i];
+        const col = val >= 75 ? "var(--ok)" : val >= 50 ? "var(--y)" : "var(--no)";
+        return `
+          <div class="pr">
+            <div class="row">
+              <span style="font-size:13px">${n}</span>
+              <b style="font-size:13px">${val}% (${s.t[i][0]}/${s.t[i][1]})</b>
+            </div>
+            <div class="bar"><i style="width:${val}%;background:${col}"></i></div>
+          </div>
+        `;
+      }).join("")}
+      <div style="height:210px;position:relative;margin-top:12px">
+        <canvas id="cv"></canvas>
+      </div>
+    </div>
+
+    <h4>Diagnostic Analytics Sederhana</h4>
+    <div class="card gold">
+      <ul style="margin-bottom:0">${a.p.map(x => `<li>${x}</li>`).join("")}</ul>
+    </div>
+
+    <h4>Recommendation Engine (Tindak Lanjut)</h4>
+    <div class="card accent">
+      ${a.r.map(x => `<button class="btn" onclick="go(${x[1]})">${x[0]} ›</button>`).join("")}
+    </div>
+
+    <h4>Log Aktivitas Kelas (Google Sheets)</h4>
+    <div class="card" id="log">Memuat data kelas…</div>
+    <div class="c">
+      <div id="snt" style="font-size:12.5px;margin-bottom:6px"></div>
+      <button class="btn ghost sm" onclick="S.sent=false;pushData()">↻ Kirim / Sinkronkan Ulang ke Google Sheets</button>
+    </div>
+  `;
+
+  if (window.Chart) {
+    const txt = getComputedStyle(document.body).color, grid = "rgba(128,128,128,.35)";
+    Chart.defaults.color = txt;
+    Chart.defaults.borderColor = grid;
+    ch = new Chart($("#cv"), {
+      type: "bar",
+      data: {
+        labels: ["Simbol", "Atribut", "Kardinalitas", "Konsep"],
+        datasets: [{
+          label: "Akurasi (%)",
+          data: s.acc,
+          backgroundColor: ["#006633", "#F2A900", "#1b8a4a", "#c98a00"],
+          borderRadius: 6
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        scales: {
+          y: { min: 0, max: 100, grid: { color: grid }, border: { color: txt }, ticks: { color: txt, callback: v => v + "%" } },
+          x: { grid: { display: false }, border: { color: txt }, ticks: { color: txt } }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+
+  if (S.done) pushData();
+  loadLog();
+}
+
+/* ===== GOOGLE SHEETS INTEGRATION (CORS-AWARE + ANTI-DUPLIKAT) ===== */
+const QK = "erd_q";
+const newSid = () => "S" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+function setConn(state, msg) {
+  const L = { on: "Sheets: Terhubung ✓", warn: "Sheets: Terkirim (belum terverifikasi)", off: "Sheets: Offline", err: "Sheets: Gagal ✕" };
+  const el = $("#conn");
+  el.textContent = L[state] || L.err;
+  el.title = msg || "";
+}
+
+function diagConn(e, status) {
+  if (!navigator.onLine) return { s: "off", m: "Perangkat tidak terhubung ke internet. Data disimpan di antrean lokal." };
+  if (status) return { s: "err", m: "Apps Script membalas HTTP " + status + ". Periksa URL /exec dan pastikan deployment versi terbaru dengan akses Anyone." };
+  if (e instanceof SyntaxError) return { s: "err", m: "Balasan bukan JSON (kemungkinan halaman login Google). Deploy ulang Web App: Execute as Me, Who has access Anyone, versi baru." };
+  return { s: "err", m: "Permintaan ke Apps Script gagal atau diblokir (CORS, URL salah, atau jaringan dibatasi). Periksa URL /exec dan akses Anyone; jika memakai pratinjau Artifact, buka file HTML langsung di browser." };
+}
+
+/* --- antrean offline: normalisasi, buang data korup, hilangkan duplikat --- */
+function normItem(x) {
+  if (!x || typeof x !== "object") return null;
+  const g = (...ks) => { for (const k of ks) if (x[k] !== undefined && x[k] !== null && x[k] !== "") return x[k]; return ""; };
+  const n = v => { const z = Number(v); return Number.isFinite(z) ? z : 0; };
+  const nim = String(g("NIM", "nim")), nama = String(g("Nama_Lengkap", "nama"));
+  if (!nim && !nama) return null;
+  return {
+    sid: String(x.sid || ("Q" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7))),
+    tries: n(x.tries),
+    Timestamp: String(g("Timestamp") || new Date().toISOString()),
+    NIM: nim,
+    Nama_Lengkap: nama,
+    Durasi_Belajar_Detik: n(g("Durasi_Belajar_Detik", "durasi")),
+    Tingkat_Penyelesaian_Persen: n(g("Tingkat_Penyelesaian_Persen", "persen")),
+    Jumlah_Kesalahan_Latihan: n(g("Jumlah_Kesalahan_Latihan", "Total_Kesalahan_Latihan", "kesalahan")),
+    Waktu_Respon_Rata2_Detik: n(g("Waktu_Respon_Rata2_Detik", "Rata_Rata_Waktu_Respon_Detik", "respon")),
+    Skor_Evaluasi_Akhir: n(g("Skor_Evaluasi_Akhir", "skor")),
+    Diagnosis_and_Rekomendasi: String(g("Diagnosis_and_Rekomendasi", "Diagnosis_dan_Rekomendasi", "Diagnosis_Analytics", "diagnosis"))
+  };
+}
+function cleanQ(a) {
+  if (!Array.isArray(a)) return [];
+  const seen = new Set(), out = [];
+  for (const x of a) {
+    const it = normItem(x);
+    if (it && !seen.has(it.sid)) { seen.add(it.sid); out.push(it); }
+  }
+  return out.slice(-20);
+}
+const getQ = () => cleanQ(lsG(QK, []));
+const setQ = q => lsS(QK, q);
+
+async function postOne(x) {
+  const opt = { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(x) };
+  try {
+    const r = await fetch(DEFAULT_SHEETS_URL, opt);
+    if (!r.ok) return { st: "err", m: diagConn(null, r.status).m };
+    const d = JSON.parse(await r.text());
+    if (d && d.status === "ok") return { st: d.duplicate ? "dup" : "ok" };
+    return { st: "err", m: "Server menolak data: " + ((d && d.message) || "tidak diketahui") };
+  } catch (e) {
+    if (e instanceof SyntaxError) return { st: "err", m: diagConn(e).m };
+    if (!navigator.onLine) return { st: "offline", m: diagConn(e).m };
+    try {
+      // Cadangan: respons tidak terbaca (CORS). Server menolak duplikat berdasarkan sid.
+      await fetch(DEFAULT_SHEETS_URL, Object.assign({}, opt, { mode: "no-cors" }));
+      return { st: "opaque", m: "Data terkirim, tetapi respons tidak dapat dibaca browser (CORS). Cek sheet Log_Aktivitas_ERD untuk memastikan." };
+    } catch (e2) {
+      return { st: "offline", m: diagConn(e2).m };
+    }
+  }
+}
+
+let sending = null;
+function send(p) {
+  if (p) {
+    const it = normItem(p);
+    if (it) setQ(cleanQ(getQ().concat([it])));
+  }
+  if (sending) return sending;
+  const run = async () => {
+    let res = null, guard = 0, q;
+    while ((q = getQ()).length && guard++ < 25) {
+      const x = q[0];
+      res = await postOne(x);
+      if (res.st === "ok" || res.st === "dup" || res.st === "opaque") { q.shift(); setQ(q); continue; }
+      if (res.st === "err") {
+        x.tries = (x.tries || 0) + 1;
+        if (x.tries >= 5) { q.shift(); res.m += " (Data dibuang dari antrean setelah 5 kali gagal.)"; } else { q[0] = x; }
+        setQ(q);
+      }
+      break;
+    }
+    if (res) setConn(res.st === "ok" || res.st === "dup" ? "on" : res.st === "opaque" ? "warn" : res.st === "offline" ? "off" : "err", res.m);
+    return { res, pending: getQ().length };
+  };
+  sending = run().finally(() => { sending = null; });
+  return sending;
+}
+
+async function pushData() {
+  const e0 = $("#snt");
+  if (!S.done) {
+    if (e0) e0.textContent = "Selesaikan Evaluasi Akhir (15 soal) terlebih dahulu sebelum sinkronisasi.";
+    return;
+  }
+  if (S.sent) return;
+  S.sent = true;
+  if (!S.sid) S.sid = newSid();
+  const s = st(), a = analyse(s);
+  const clean = a.p.map(x => x.replace(/<[^>]*>/g, "")).join(" ");
+  const payload = {
+    sid: S.sid,
+    Timestamp: new Date().toISOString(),
+    NIM: S.nim,
+    Nama_Lengkap: S.nama,
+    Durasi_Belajar_Detik: S.sec,
+    Tingkat_Penyelesaian_Persen: s.pct,
+    Jumlah_Kesalahan_Latihan: s.errT,
+    Waktu_Respon_Rata2_Detik: s.avg,
+    Skor_Evaluasi_Akhir: s.score,
+    Diagnosis_and_Rekomendasi: clean + " Saran: " + a.r.map(x => x[0]).join("; ")
+  };
+  let out = await send(payload);
+  if (getQ().some(x => x.sid === S.sid) && !(out.res && (out.res.st === "offline" || out.res.st === "err"))) out = await send();
+  const queued = getQ().some(x => x.sid === S.sid), r = out.res;
+  if (queued) S.sent = false;
+  const e = $("#snt");
+  if (e) {
+    let m;
+    if (!queued && r && r.st === "ok") m = "✅ Data berhasil dikirim dan dikonfirmasi oleh Google Sheets.";
+    else if (!queued && r && r.st === "dup") m = "✅ Data sudah tersinkron sebelumnya di Google Sheets (tidak diduplikasi).";
+    else if (!queued && r && r.st === "opaque") m = "⚠️ " + r.m;
+    else m = (r && r.st === "offline" ? "⚠️ Offline: " : "❌ Gagal: ") + ((r && r.m) || "data tersimpan di antrean lokal.") + " Data aman di antrean lokal dan dikirim ulang otomatis.";
+    e.textContent = m;
+  }
+  setTimeout(loadLog, 1500);
+}
+
+async function pingSheets() {
+  try {
+    const r = await fetch(DEFAULT_SHEETS_URL + "?action=ping");
+    if (!r.ok) { const d = diagConn(null, r.status); setConn(d.s, d.m); return; }
+    const j = JSON.parse(await r.text());
+    if (j && j.status === "ok") setConn("on", "Web App merespons normal.");
+    else setConn("err", "Balasan ping tidak dikenali. Pastikan Code.gs terbaru sudah di-deploy.");
+  } catch (e) {
+    const d = diagConn(e);
+    setConn(d.s, d.m);
+  }
+}
+
+const n0 = v => { if (v === "" || v == null) return "-"; const z = Number(v); return Number.isFinite(z) ? z : "-"; };
+function recFrom(x) {
+  if (Array.isArray(x)) return { t: x[0], nama: x[1], dur: x[2], pct: x[3], err: x[4], skor: x[6] };
+  x = x || {};
+  return { t: x.Timestamp, nama: x.Nama_Lengkap, dur: x.Durasi_Belajar_Detik, pct: x.Tingkat_Penyelesaian_Persen, err: x.Jumlah_Kesalahan_Latihan, skor: x.Skor_Evaluasi_Akhir };
+}
+
+async function loadLog() {
+  const l = $("#log");
+  try {
+    const r = await fetch(DEFAULT_SHEETS_URL + "?action=log");
+    if (!r.ok) throw Object.assign(new Error("http"), { status: r.status });
+    const d = JSON.parse(await r.text());
+    if (!d || d.status === "error") throw Object.assign(new Error("srv"), { srv: (d && d.message) || "tidak diketahui" });
+    const recs = Array.isArray(d.records) ? d.records.map(recFrom) : Array.isArray(d.rows) ? d.rows.map(recFrom) : null;
+    if (!recs) throw Object.assign(new Error("fmt"), { fmt: true });
+    setConn("on", "Log kelas berhasil dimuat.");
+    const vals = recs.map(x => x.skor).filter(v => v !== "" && v != null && Number.isFinite(Number(v))).map(Number);
+    const avg = d.avg != null && Number.isFinite(Number(d.avg)) ? Number(d.avg) : (vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null);
+    const ae = $("#avg");
+    if (ae) ae.textContent = avg == null ? "-" : avg;
+    if (l) {
+      l.innerHTML = recs.length
+        ? `<div style="overflow-x:auto"><table><tr><th>Waktu</th><th>Nama</th><th>Skor</th><th>Durasi</th><th>Selesai</th><th>Salah</th></tr>${recs.slice(0, 15).map(x => `<tr><td>${esc(String(x.t || "-").slice(0, 16).replace("T", " "))}</td><td>${esc(x.nama || "-")}</td><td><b>${n0(x.skor)}</b></td><td>${fmt(Number(x.dur) || 0)}</td><td>${n0(x.pct)}%</td><td>${n0(x.err)}</td></tr>`).join("")}</table></div>`
+        : "Belum ada data kelas terekam.";
+    }
+  } catch (e) {
+    let m;
+    if (e.status) m = diagConn(null, e.status);
+    else if (e.srv) m = { s: "err", m: "Apps Script melaporkan error: " + e.srv };
+    else if (e.fmt) m = { s: "err", m: "Format respons tidak dikenali. Deploy Code.gs terbaru sebagai versi baru." };
+    else m = diagConn(e);
+    setConn(m.s, m.m);
+    const ae = $("#avg");
+    if (ae) ae.textContent = "-";
+    if (l) l.innerHTML = `<b>⚠️ Log kelas gagal dimuat.</b><br><span style="font-size:13px">${esc(m.m)}</span><br><button class="btn ghost sm" onclick="loadLog()">↻ Coba lagi</button>`;
+  }
+}
+
+window.addEventListener("online", () => { send(); pingSheets(); });
+window.addEventListener("offline", () => setConn("off", "Perangkat tidak terhubung ke internet."));
+setQ(getQ());          // bersihkan antrean korup / duplikat dari sesi lama
+pingSheets();
+if (getQ().length) send();
+go(0);
+</script>
+</body>
+</html>
